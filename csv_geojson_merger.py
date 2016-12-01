@@ -23,7 +23,7 @@ float_pat = compile(r'^-?\d+\.\d+(e-?\d+)?$')
 charfloat_pat = compile(r'^[\[,\,]-?\d+\.\d+(e-?\d+)?$')
 
 parser = ArgumentParser(description="Group (merge) multiple GeoJSON features/groups from CSV.")
-defaults = dict(precision=-1, outfile=sys.stdout, column=0)
+defaults = dict(precision=-1, outfile=sys.stdout, column=0, skiplines=1)
 parser.set_defaults(**defaults)
 
 parser.add_argument('file',
@@ -32,6 +32,8 @@ parser.add_argument('-c', '--column', dest='column', required=True,
                   type=int, help='Column to be read/merged')
 parser.add_argument('-p', '--precision', dest='precision',
                   type=int, help='Digits of precision')
+parser.add_argument('-s', '--skip-lines', dest='skiplines',
+                  type=int, help='Skips first N lines (header)')
 parser.add_argument('-o', '--outfile', dest='outfile',
                   type=FileType('wb', 0), help='Outfile')
 
@@ -39,6 +41,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
   infile = args.file
   outfile = args.outfile
+  skiplines = args.skiplines
   rawData = csv.reader(infile, delimiter=',', quotechar='"')
 
   outjson = dict(type='FeatureCollection', features=[])
@@ -47,7 +50,7 @@ if __name__ == '__main__':
 
   for row in rawData:
     iter += 1
-    if iter >= 2:
+    if iter >= (skiplines + 1):
       try:
         dados = row[args.column]
         if dados != '':
